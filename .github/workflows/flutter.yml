@@ -1,0 +1,22 @@
+name: Fluttet CI
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    container:
+      image: registry.gitlab.com/mehulagg/docker-flutter:master
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: flutter pub get
+    - name: Build
+      run: flutter build apk
