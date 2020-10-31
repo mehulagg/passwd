@@ -12,11 +12,14 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: registry.gitlab.com/mehulagg/docker-flutter:master
+      image: cirrusci/flutter:latest
 
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: flutter pub get
     - name: Build
-      run: flutter build apk
+      run: |
+        flutter channel master
+        fluttet upgrade
+        flutter build apk
