@@ -11,15 +11,21 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    container:
-      image: cirrusci/flutter:latest
-
     steps:
     - uses: actions/checkout@v2
-    - name: Install dependencies
-      run: flutter pub get
-    - name: Build
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - name: Flutter action
+      uses: subosito/flutter-action@v1.4.0
+      with:
+        channel: dev
+    - name: master channel
       run: |
         flutter channel master
         flutter upgrade
-        flutter build apk --release
+    - name: Install dependencies
+      run: fluttet pub get
+    - name: Build
+      run: flutter build apk --release
+
