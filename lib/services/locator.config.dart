@@ -4,21 +4,22 @@
 // InjectableConfigGenerator
 // **************************************************************************
 
+import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 import 'advance_crypto/advance_crypto_aes.dart';
 import 'advance_crypto/advance_crypto_service.dart';
-import 'authentication/authentication_impl.dart';
+import 'authentication/authentication_biometric_storage.dart';
 import 'authentication/authentication_service.dart';
-import 'biometrics/biometrics_localauth.dart';
+import 'biometrics/biometrics_biometric_storage.dart';
 import 'biometrics/biometrics_service.dart';
 import 'crypto/crypto_crypt.dart';
 import 'crypto/crypto_service.dart';
 import 'database/database_impl.dart';
 import 'database/database_service.dart';
-import 'favicon/favicon_http.dart';
+import 'dio.dart';
+import 'favicon/favicon_new.dart';
 import 'favicon/favicon_service.dart';
 import 'password/password_impl.dart';
 import 'password/password_service.dart';
@@ -31,7 +32,6 @@ import 'secure_kv/secure_kv_sharedprefs.dart' as passwd;
 import 'secure_kv/secure_kv.dart';
 import 'sync/sync_binary.dart';
 import 'sync/sync_service.dart';
-import 'third_party.dart';
 
 /// Environment names
 const _mobile = 'mobile';
@@ -46,15 +46,15 @@ GetIt $initGetIt(
   EnvironmentFilter environmentFilter,
 }) {
   final gh = GetItHelper(get, environment, environmentFilter);
-  final thirdPartySevices = _$ThirdPartySevices();
+  final dioModule = _$DioModule();
   gh.lazySingleton<AdvanceCryptoService>(() => AdvanceCryptoAes());
-  gh.lazySingleton<AuthenticationService>(() => AuthenticationImpl());
-  gh.lazySingleton<BiometricsService>(() => BiometricsLocalAuth());
+  gh.lazySingleton<AuthenticationService>(
+      () => AuthenticationBiometricStorage());
+  gh.lazySingleton<BiometricsService>(() => BiometricsBiometricStorage());
   gh.lazySingleton<CryptoService>(() => CryptoCrypt());
   gh.lazySingleton<DatabaseService>(() => DatabaseImpl());
-  gh.lazySingleton<FaviconService>(() => FaviconHttp());
-  gh.lazySingleton<NavigationService>(
-      () => thirdPartySevices.navigationService);
+  gh.lazySingleton<Dio>(() => dioModule.dio);
+  gh.lazySingleton<FaviconService>(() => FaviconNew());
   gh.lazySingleton<PasswordService>(() => PasswordImpl());
   gh.lazySingleton<PathService>(() => PathPathProvider());
   gh.lazySingleton<QRService>(() => QRFlutterBarcodeScanner());
@@ -66,7 +66,4 @@ GetIt $initGetIt(
   return get;
 }
 
-class _$ThirdPartySevices extends ThirdPartySevices {
-  @override
-  NavigationService get navigationService => NavigationService();
-}
+class _$DioModule extends DioModule {}

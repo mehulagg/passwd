@@ -1,5 +1,15 @@
-import 'package:passwd/models/otp.dart';
+import 'otp.dart';
 
+/// [Entry] contains the single DB entry for an account
+/// [colorId] is generated while saving, and used to create a fallback icon when the [favicon] is unavailable
+/// [name] stores the account name
+/// [username] stores the username, while [password] stores the password
+/// [note] stores the note
+/// [favicon] stores the favicon URL (or null in case the favicon is not available)
+/// [id] is a 24-length randomly generated ID
+/// [tags] stores a [List] of [String], which correspond to [Tag] [id]s
+/// [otp] store the [Otp] model (if a 2fa entry is setup)
+/// [Entry] and its children are JSON and MsgPack serializable
 class Entry {
   int colorId;
   String name;
@@ -38,17 +48,17 @@ class Entry {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
-    data['c'] = this.colorId;
-    data['n'] = this.name;
-    data['u'] = this.username;
-    data['p'] = this.password;
-    data['no'] = this.note;
-    data['f'] = this.favicon;
-    data['i'] = this.id;
-    data['t'] = this.tags;
-    if (this.otp != null) {
-      data['o'] = this.otp.toJson();
+    final data = <String, dynamic>{};
+    data['c'] = colorId;
+    data['n'] = name;
+    data['u'] = username;
+    data['p'] = password;
+    data['no'] = note;
+    data['f'] = favicon;
+    data['i'] = id;
+    data['t'] = tags;
+    if (otp != null) {
+      data['o'] = otp.toJson();
     }
     return data;
   }

@@ -1,23 +1,25 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:injectable/injectable.dart';
+// import 'package:injectable/injectable.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:passwd/models/biometrics_result.dart';
-import 'package:passwd/services/biometrics/biometrics_service.dart';
 
-@LazySingleton(as: BiometricsService)
+import '../../models/biometrics_result.dart';
+import 'biometrics_service.dart';
+
+/// [BiometricsLocalAuth] uses "local_auth" to provide a concrete implementation for [BiometricsService]
+/// This implementation, due to being insecure, is no longer injected. [BiometricsBiometricStorage] is used instead
 class BiometricsLocalAuth implements BiometricsService {
   final LocalAuthentication authentication = LocalAuthentication();
 
   @override
   Future<BiometricsResult> authenticate(String reason) async {
-    if (!Platform.isAndroid || !Platform.isIOS) {
+    if (!Platform.isAndroid && !Platform.isIOS) {
       return BiometricsResult.UNAVAILABLE;
     }
 
     try {
-      bool authenticated = await authentication.authenticateWithBiometrics(
+      final authenticated = await authentication.authenticateWithBiometrics(
         localizedReason: reason,
         stickyAuth: true,
       );
@@ -27,14 +29,15 @@ class BiometricsLocalAuth implements BiometricsService {
       } else {
         return BiometricsResult.REJECTED;
       }
-    } catch (_) {
+    } catch (e) {
+      print(e);
       return BiometricsResult.UNAVAILABLE;
     }
   }
 
   @override
   Future<bool> biometricsAvailable() async {
-    if (!Platform.isAndroid || !Platform.isIOS) {
+    if (!Platform.isAndroid && !Platform.isIOS) {
       return false;
     }
 

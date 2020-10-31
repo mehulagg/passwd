@@ -1,21 +1,26 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:injectable/injectable.dart';
 import 'package:msgpack_dart/msgpack_dart.dart';
-import 'package:passwd/constants/config.dart';
-import 'package:passwd/models/entries.dart';
-import 'package:passwd/services/advance_crypto/advance_crypto_service.dart';
-import 'package:passwd/services/authentication/authentication_service.dart';
-import 'package:passwd/services/locator.dart';
-import 'package:passwd/services/path/path_service.dart';
-import 'package:passwd/services/sync/sync_service.dart';
 import 'package:path/path.dart' as path;
 
+import '../../constants/config.dart';
+import '../../models/entries.dart';
+import '../advance_crypto/advance_crypto_service.dart';
+import '../authentication/authentication_service.dart';
+import '../locator.dart';
+import '../path/path_service.dart';
+import 'sync_service.dart';
+
+/// [SyncBinary] implements the [SyncService]
+/// It consumes services like [AdvanceCryptoService], [AuthenticationService] and [PathService]
+/// It provides an abstraction over the serialization, compression, encryption and storage of the DB
+/// This implementation uses gzip, msgpack and AES-256-CTR for the on-device DB
+/// Cloud sync is not yet implemented
 @LazySingleton(as: SyncService)
 class SyncImpl implements SyncService {
-  final String fileName = "db0.passwd";
+  final String fileName = 'db0.passwd';
 
   final AdvanceCryptoService advanceCryptoService =
       locator<AdvanceCryptoService>();
@@ -26,25 +31,22 @@ class SyncImpl implements SyncService {
   @override
   Future<Entries> readDatabaseLocally() async {
     try {
-      Directory directory = await pathService.getDocDir();
-      String filePath = path.join(directory.path, "$fileName");
+      await pathService.checkCacheDir();
+      final directory = await pathService.getDocDir();
+      final filePath = path.join(directory.path, '$fileName');
 
-      if (!(await directory.exists())) {
-        await directory.create(recursive: true);
-      }
+      final dbFile = File(filePath);
 
-      File dbFile = File(filePath);
-
-      Uint8List fileContent = await dbFile.readAsBytes();
-      Uint8List decryptedContent = await advanceCryptoService.decryptBinary(
+      final fileContent = await dbFile.readAsBytes();
+      final decryptedContent = await advanceCryptoService.decryptBinary(
         fileContent,
         await authenticationService.readEncryptionKey(),
       );
-      Uint8List uncompressedContent = GZipDecoder().decodeBytes(
+      final uncompressedContent = GZipDecoder().decodeBytes(
         decryptedContent,
       );
 
-      Entries entries = Entries.fromJson(
+      final entries = Entries.fromJson(
         Map<String, dynamic>.from(
           deserialize(uncompressedContent),
         ),
@@ -60,22 +62,21 @@ class SyncImpl implements SyncService {
   Future<bool> syncronizeDatabaseLocally(Entries entries) async {
     try {
       entries.version = dbVersion;
-      Uint8List unencryptedData = serialize(entries.toJson());
-      Uint8List unencryptedCompressedData =
-          GZipEncoder().encode(unencryptedData);
-      Uint8List encryptedJson = await advanceCryptoService.encryptBinary(
+      final unencryptedData = serialize(entries.toJson());
+      final unencryptedCompressedData = GZipEncoder().encode(unencryptedData);
+      final encryptedJson = await advanceCryptoService.encryptBinary(
         unencryptedCompressedData,
         await authenticationService.readEncryptionKey(),
       );
 
-      Directory directory = await pathService.getDocDir();
-      String filePath = path.join(directory.path, "$fileName");
+      final directory = await pathService.getDocDir();
+      final filePath = path.join(directory.path, '$fileName');
 
-      if (!(await directory.exists())) {
-        directory.create(recursive: true);
+      final dbFile = File(filePath);
+
+      if (!(await dbFile.exists())) {
+        await dbFile.createSync(recursive: true);
       }
-
-      File dbFile = File(filePath);
 
       await dbFile.writeAsBytes(encryptedJson);
 

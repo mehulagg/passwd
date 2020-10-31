@@ -1,11 +1,14 @@
 import 'package:injectable/injectable.dart';
-import 'package:passwd/models/entry.dart';
-import 'package:passwd/models/entries.dart';
-import 'package:passwd/models/tag.dart';
-import 'package:passwd/services/database/database_service.dart';
-import 'package:passwd/services/locator.dart';
-import 'package:passwd/services/sync/sync_service.dart';
 
+import '../../models/entries.dart';
+import '../../models/entry.dart';
+import '../../models/tag.dart';
+import '../locator.dart';
+import '../sync/sync_service.dart';
+import 'database_service.dart';
+
+/// [DatabaseImpl] implements the database API exposed by the [DatabaseService]
+/// It consumes [SyncService] to provide an abstraction over the raw sync API
 @LazySingleton(as: DatabaseService)
 class DatabaseImpl implements DatabaseService {
   Entries _entries = Entries(entries: []);
@@ -39,11 +42,11 @@ class DatabaseImpl implements DatabaseService {
 
   @override
   Future modifyEntry(Entry old, Entry changed) async {
-    int index = _entries.entries.indexWhere(
+    final index = _entries.entries.indexWhere(
       (element) => element.id == old.id,
     );
 
-    if (index != null) {
+    if (index != -1) {
       _entries.entries[index] = changed;
       await syncAndReloadDatabase();
     }
@@ -51,9 +54,7 @@ class DatabaseImpl implements DatabaseService {
 
   @override
   Future addTag(Tag tag) async {
-    if (_entries.tags == null) {
-      _entries.tags = [];
-    }
+    _entries.tags ??= [];
 
     _entries.tags.add(tag);
     await syncAndReloadDatabase();

@@ -1,22 +1,24 @@
-import 'package:injectable/injectable.dart';
-import 'package:passwd/services/authentication/authentication_service.dart';
-import 'package:passwd/services/crypto/crypto_service.dart';
-import 'package:passwd/services/locator.dart';
-import 'package:passwd/services/secure_kv/secure_kv.dart';
+// import 'package:injectable/injectable.dart';
 import 'package:supercharged/supercharged.dart';
 
-@LazySingleton(as: AuthenticationService)
+import '../crypto/crypto_service.dart';
+import '../locator.dart';
+import '../secure_kv/secure_kv.dart';
+import 'authentication_service.dart';
+
+/// [AuthenticationImpl] implements the [AuthenticationService] to provide an implementation for the authentication used in app
+/// This implementation, due to being insecure, is no longer injected. [AuthenticationBiometricStorage] is used instead
 class AuthenticationImpl implements AuthenticationService {
-  final String key = "ENCRYPTION_KEY";
-  final String biometricsKey = "ALLOW_BIOMETRICS";
+  final String key = 'ENCRYPTION_KEY';
+  final String biometricsKey = 'ALLOW_BIOMETRICS';
 
   final CryptoService crypto = locator<CryptoService>();
   final SecureKVService kv = locator<SecureKVService>();
 
   @override
   Future<bool> comparePin(int pin) async {
-    String s256 = crypto.sha512(pin.toString());
-    String encryptionKey = await kv.getValue(key);
+    final s256 = crypto.sha512(pin.toString());
+    final encryptionKey = await kv.getValue(key);
 
     return s256 == encryptionKey;
   }
@@ -27,8 +29,8 @@ class AuthenticationImpl implements AuthenticationService {
   }
 
   @override
-  Future writePin(int pin) async {
-    String encryptionKey = crypto.sha512(pin.toString());
+  Future writePin(int pin, bool _) async {
+    final encryptionKey = crypto.sha512(pin.toString());
     await kv.putValue(key, encryptionKey);
   }
 
@@ -39,6 +41,11 @@ class AuthenticationImpl implements AuthenticationService {
 
   @override
   Future writeBiometrics(bool allow) async {
-    await kv.putValue(biometricsKey, allow ? "1" : "0");
+    await kv.putValue(biometricsKey, allow ? '1' : '0');
+  }
+
+  @override
+  Future<bool> isAppSetup() async {
+    throw UnimplementedError();
   }
 }

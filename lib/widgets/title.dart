@@ -1,25 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:passwd/constants/colors.dart';
+
+import '../constants/colors.dart';
 
 class TitleWidget extends StatelessWidget {
   final double textSize;
+  final MainAxisAlignment mainAxisAlignment;
 
-  TitleWidget({this.textSize = 36});
+  TitleWidget({
+    this.textSize = 36,
+    this.mainAxisAlignment = MainAxisAlignment.center,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: mainAxisAlignment,
       children: [
         Text(
-          "Pass",
+          'Pass',
           style: Theme.of(context).textTheme.headline4.copyWith(
                 fontSize: textSize,
                 fontWeight: FontWeight.w900,
               ),
         ),
         Text(
-          "wd",
+          'wd',
           style: Theme.of(context).textTheme.headline4.copyWith(
                 color: primaryColor,
                 fontSize: textSize,
@@ -27,7 +32,7 @@ class TitleWidget extends StatelessWidget {
               ),
         ),
         Text(
-          ".",
+          '.',
           style: Theme.of(context).textTheme.headline4.copyWith(
                 fontSize: textSize,
                 fontWeight: FontWeight.w900,
