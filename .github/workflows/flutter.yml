@@ -25,7 +25,7 @@ jobs:
         flutter channel master
         flutter upgrade
     - name: Install dependencies
-      run: fluttet pub get
+      run: flutter pub get
     - name: Build
       run: flutter build apk --release
 
