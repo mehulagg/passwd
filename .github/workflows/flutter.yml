@@ -22,4 +22,4 @@ jobs:
       run: |
         flutter channel master
         flutter upgrade
-        flutter build apk
+        flutter build apk --release
